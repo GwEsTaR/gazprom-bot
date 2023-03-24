@@ -1,27 +1,46 @@
 import discord
-import disnake
-from disnake.ext import commands
-import torch
-import diffusion
+import requests
+import json
+import asyncio
 
-bot = commands.Bot(command_prefix='/')
+intents = discord.Intents.all()
+client = discord.Client(intents=intents, privileged=True)
 
-model = diffusion.load_model(device='cpu')
+@client.event
+async def on_ready():
+    print('Logged in as {0.user}'.format(client))
 
-@bot.command(name='generate')
-async def generate_command(ctx: disnake.Message):
 
-    num_steps = 1000
-    batch_size = 1
-    size = 256
-    channels = 3
 
-    z = torch.randn(batch_size, channels, size)
+def generate_image(prompt):
+    url = 'https://api.openai.com/v1/images/generations'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer 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'
+    }
+    data = {
+        "model": "image-alpha-001",
+        "prompt": prompt,
+        "num_images": 1,
+        "size": "512x512",
+        "response_format": "url"
+    }
 
-    with torch.no_grad():
-        generated_images = diffusion.generate(model, z, num_steps=num_steps)
+    response = requests.post(url, headers=headers, data=json.dumps(data))
+    return response.json()['data'][0]['url']
 
-        image = disnake.File(generated_images[0].clamp(0, 1).cpu().numpy())
-        await ctx.send(file=image)
+@client.event
+async def on_ready():
+    print(f'We have logged in as {client.user}')
 
-bot.run('MTA3MzQ4MDIxMjk4NzI1Mjc2Ng.G5xMUl.6gqH7JnrS7tHnNXuqTsP7qE7UJIQ_XdxIWiNSc')
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
+
+    if message.content.startswith('/generate_image'):
+        prompt = message.content[15:]
+        image_url = generate_image(prompt)
+        await message.channel.send(image_url)
+
+client.run('MTA3MzQ4MDIxMjk4NzI1Mjc2Ng.G_9eJa.0YlukHjEZCbYxnnkNyUhNK5G4wRvJ5G7e2O3-M')
