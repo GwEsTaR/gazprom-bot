@@ -7,7 +7,7 @@ def generate_image(prompt):
     url = 'https://api.openai.com/v1/images/generations'
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer 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'
+        'Authorization': 'Bearer MTA3MzQ4MDIxMjk4NzI1Mjc2Ng.GltYmm.ZcOT522SaWbWBZdZvbKbRFNGohv4xqDcuRJJeg'
     }
     data = {
         "model": "image-alpha-001",
